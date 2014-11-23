@@ -21,10 +21,10 @@
 #include <iostream>
 
 using namespace dealii;
-class Re_numbering
+class compute_cell_wis
 {
 public:
-  Re_numbering ();
+  compute_cell_wis ();
   void run ();
 private:
   void make_grid ();
@@ -33,17 +33,17 @@ private:
 
   Triangulation<2>     triangulation;
   FE_Q<2>              fe;
-  DoFHandler<2>        dof_handler;
-  std::vector<typename DoFHandler<2>::active_cell_iterator> global_cells;
+   DoFHandler<2>        dof_handler;
+  const std::vector<typename DoFHandler<2>::active_cell_iterator> global_cells;
 };
 
-Re_numbering::Re_numbering ()
+compute_cell_wis::compute_cell_wis ()
   :
   fe (1),
   dof_handler (triangulation)
 {}
 
-void  Re_numbering::make_grid ()
+void compute_cell_wis::make_grid ()
 {
   GridGenerator::hyper_cube (triangulation, -1, 1);
   triangulation.refine_global (2);
@@ -60,7 +60,7 @@ void  Re_numbering::make_grid ()
             << std::endl;
 }
 //.............................................................................................
-void Re_numbering::distribute_dofs ()
+void compute_cell_wis::distribute_dofs ()
 {
  dof_handler.distribute_dofs (fe);
  std::cout << "Number of degrees of freedom: "
@@ -84,9 +84,23 @@ std::cout<<cell->center()(0)<<" "<<cell->center()(1)<<":";
   std::cout<<" "<< local_dof_indices[i];
   std::cout<< std::endl;
 }
+std::vector< types::global_dof_index >  renumbering;
+std::vector< types::global_dof_index >  inverse_renumbering;
+
+DoFRenumbering::compute_cell_wis( renumbering, inverse_renumbering, dof_handler,global_cells);
+
+for (unsigned int j=0; j<renumbering.size() ; ++j){
+std::cout<< " renumbering vector :"  <<renumbering[j];
+std::cout  << std::endl ;
+}
+
+for (unsigned int k=0; k<inverse_renumbering.size() ; ++k){
+std::cout<< " inverse_renumbering vector: " <<inverse_renumbering[k];
+std::cout  << std::endl ;
+}
 
 //........................
-
+/*
 std::vector<types::global_dof_index> renum_local_dof_indices (dofs_per_cell);
 
  std::vector<typename DoFHandler<2>::active_cell_iterator> tmp_cells;
@@ -115,9 +129,10 @@ for (unsigned int j=0; j<dofs_per_cell; ++j )
 std::cout  << std::endl ;
     
   }
+*/
 }
 //.............................................................................................
-void Re_numbering::output_results () const
+void compute_cell_wis::output_results () const
 {
   DataOut<2> data_out;
   data_out.attach_dof_handler (dof_handler);
@@ -126,7 +141,7 @@ void Re_numbering::output_results () const
 }
 
 //.............................................................................................
-void Re_numbering::run ()
+void compute_cell_wis::run ()
 {
   make_grid ();
   distribute_dofs ();
@@ -135,7 +150,7 @@ void Re_numbering::run ()
 //.............................................................................................
 int main ()
 {
-  Re_numbering cell_wise_renumber;
+  compute_cell_wis cell_wise_renumber;
   cell_wise_renumber.run ();
   return 0;
 }
